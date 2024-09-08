@@ -43,7 +43,7 @@ private boolean isCharANumber(char token) {
 ```
 ## Como se evalua la expresion
 
-### Primero la exprecion es leida y tokenizada mediante un algoritmo que permite identificar cualquier numero real de la siguiente manera:
+### Primero la exprecion es leida y tokenizada mediante un algoritmo personalizado denominado "MathBufferTokenizer" que permite identificar cualquier numero real de la siguiente manera:
 
 - Se itera sobre cada carácter de la expresión usando un ciclo for:
   - Si el carácter actual es un número (incluyendo decimales), se utiliza un StringBuilder como buffer temporal para capturar el número completo:
@@ -53,7 +53,7 @@ private boolean isCharANumber(char token) {
   - Si el carácter actual no es un número, se asume que es un operador, un paréntesis u otro símbolo, por lo que se agrega directamente a la lista de tokens.
 
  ``` java
-private List<String> tokenizer(String expression) {
+    private List<String> tokenizer(String expression) {
         expression = expression.replaceAll("\\s+", "");// Elimina los espacios.
         expression = expression.replaceAll("Ans", String.valueOf(ans));
 
