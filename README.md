@@ -1,61 +1,58 @@
 # Scientific-Calculator
-Esta calculadora científica utiliza el algoritmo shunting yard, creado por el famoso científico de la computación Edsger Dijkstra. El objetivo principal de este algoritmo es convertir una expresión matemática en notación infija (la forma habitual en la que escribimos las expresiones matemáticas, como "3 + 3 x 4 - 10") a una notación posfija o notación polaca inversa (por ejemplo, "3 3 4 * + 10 -"). Esta conversión facilita la evaluación de la expresión para una computadora.
+Esta calculadora científica utiliza el algoritmo Shunting Yard, creado por el famoso científico de la computación Edsger Dijkstra. El objetivo principal de este algoritmo es convertir una expresión matemática en notación infija (la forma habitual en la que escribimos las expresiones matemáticas, como "3 + 3 x 4 - 10") a una notación posfija o notación polaca inversa (por ejemplo, "3 3 4 * + 10 -"). Esta conversión facilita la evaluación de la expresión para una computadora.
 
+Haciendo uso de un algoritmo personalizado denominado "Sorting Buffer" para formatear y tokenizar la expresion de entrada facilitando su conversion a notacion posfija.
 
-Metodos, estructuras de datos y constructor utilizados para evaluar las expresiones:
-
-``` java
-
-    private static HashMap<String, Integer> precedence = new HashMap<>();
-    private static List<String> posfixExpresion;
-    private static double ans = 0;
-
-    public Evaluator(String expression) {
-        
-        // Precedencia de los operadores aritméticos.
-        precedence.put("+", 1);
-        precedence.put("-", 1);
-        precedence.put("x", 2);
-        precedence.put("÷", 2);
-        precedence.put("^", 3);
-        precedence.put("√", 3);
-        
-        final List<String> TOKENS = tokenizer(expression);
-        infixToPostfix(TOKENS);
-    }
-
-private boolean isCharANumber(char token) {
-        return Character.isDigit(token);
-    }
-
-    private boolean isStringANumber(String token) {
-        try {
-            Double.parseDouble(token);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    private boolean isOperator(String token) {
-        return precedence.containsKey(token);
-    }
-```
 ## Como se evalua la expresion
 
-### Primero la exprecion es leida y tokenizada mediante un algoritmo personalizado denominado "MathBufferTokenizer" que permite identificar cualquier numero real de la siguiente manera:
+Primero la exprecion es leida y tokenizada mediante el algoritmo "Sorting Buffer" que permite identificar cualquier numero real y funcion trigonometrica de la siguiente manera:
 
-- Se itera sobre cada carácter de la expresión usando un ciclo for:
-  - Si el carácter actual es un número (incluyendo decimales), se utiliza un StringBuilder como buffer temporal para capturar el número completo:
-      - Mientras los caracteres consecutivos sean dígitos o un punto decimal (.), se agregan al buffer.
-      -  Una vez que se termina de capturar el número completo, este se agrega a la lista de tokens.
-      - El índice del ciclo (i) se retrocede un paso para evitar saltar un carácter importante.
-  - Si el carácter actual no es un número, se asume que es un operador, un paréntesis u otro símbolo, por lo que se agrega directamente a la lista de tokens.
+### Descripción del Algoritmo
 
- ``` java
+El algoritmo sigue una serie de reglas para procesar cada expresión de manera correcta y eficiente.
+
+### 1. **Entrada**:
+   - Una cadena de texto que representa una expresión matemática.
+   - Ejemplo de expresión: `"3 + 5 x sin(30)"`
+
+### 2. **Reglas de Procesamiento**:
+
+#### 2.1 **Tokenización de la expresión**
+   1. Iniciar un bucle que recorre cada carácter de la expresión:
+      - Para cada carácter, seguir las siguientes reglas:
+
+#### 2.2 **Reglas para números**:
+   1. Si el carácter actual es un número o un punto decimal:
+      - Iniciar un buffer vacío para almacenar el número completo.
+      - Mientras se lean dígitos o puntos decimales consecutivos:
+         - Agregar el carácter al buffer.
+         - Avanzar al siguiente carácter.
+      - Cuando finalice el número, agregar el contenido del buffer como un token a la lista `tokens`.
+      - Retroceder un carácter para no saltar otros elementos de la expresión.
+
+#### 2.3 **Reglas para funciones trigonométricas**:
+   1. Si el carácter actual es una letra y esta es diferente del singno 'x':
+      - Extraer una subcadena de 3 caracteres.
+      - Si la subcadena corresponde a una función trigonométrica (como "sin", "cos", "tan"):
+         - Agregarla como un token a la lista `tokens`.
+         - Avanzar 2 posiciones adicionales para saltar la función ya procesada.
+
+#### 2.4 **Reglas para operadores y otros caracteres**:
+   1. Si el carácter actual es un operador, paréntesis u otro símbolo:
+      - Agregarlo directamente a la lista `tokens` como un token individual.
+
+### 3. **Salida**:
+   - Una lista de tokens que representan los componentes de la expresión matemática.
+   - Ejemplo de salida: `["3", "+", "5", "x", "sin", "(", "30", ")"]`
+
+``` java
+// Algoritmo de tokenización "Sorting Buffer"
     private List<String> tokenizer(String expression) {
-        expression = expression.replaceAll("\\s+", "");// Elimina los espacios.
+        
+        // Formatea la expresion corectamente.
+        expression = expression.replaceAll("\\s+", "");
         expression = expression.replaceAll("Ans", String.valueOf(ans));
+        expression = expression.toLowerCase();
 
         List<String> tokens = new ArrayList<>();
         int length = expression.length();
@@ -64,30 +61,44 @@ private boolean isCharANumber(char token) {
             char currentChar = expression.charAt(i);
 
             if (isCharANumber(currentChar)) {
-                StringBuilder numberBuffer = new StringBuilder(); // Buffer para números reales.
+                StringBuilder buffer = new StringBuilder(); // Buffer para números reales.
 
                 // Agregar todos los digitos y posibles puntos decimales.
                 while (i < length && (isCharANumber(expression.charAt(i))
                         || expression.charAt(i) == '.')) {
 
-                    numberBuffer.append(expression.charAt(i));
+                    buffer.append(expression.charAt(i));
                     i++;
                 }
-                tokens.add(numberBuffer.toString());
+
+                tokens.add(buffer.toString());
                 i--; // Retrocede para no saltar el sigiente caracter.
 
-            } else {
-                // Si no es un número se agrega directamente.
+            } else if (Character.isLetter(currentChar) && currentChar != 'x') {
+                /*
+                 * Si el caracter leido es una letra y esta es diferente del singo "x" entonces,
+                 * extraer una subcadena en el rango (i a i+3) y comparar.
+                 */
+                String function = expression.substring(i, i + 3);
+                if (isTrigonometricFunction(function)) {
+                    tokens.add(function);
+                    i += 2;// Actualiza el caracter actual.
+                }
+
+            } else {// Si no es un número, operador o parentesis se agrega directamente.
                 tokens.add(String.valueOf(currentChar));
             }
         }
         return tokens;
     }
- ```
+``` 
 
-### Luego se convierte la expresion de infija a posfija:
 
-El método `infixToPostfix` toma una lista de **tokens** que representan números, operadores y paréntesis en una expresión matemática infija y la convierte en una lista de tokens en notación posfija.
+### Luego se convierte la expresion de infija a posfija usando el algoritmo Shunting Yard
+
+El método `infixToPostfix` toma una lista de **tokens** que representan números, operadores, paréntesis y funciones trigonometricas en una expresión matemática infija y la convierte en una lista de tokens en notación posfija.
+
+https://es.wikipedia.org/wiki/Algoritmo_shunting_yard
 
 ### Estructuras utilizadas:
 
@@ -116,33 +127,32 @@ El método `infixToPostfix` toma una lista de **tokens** que representan número
    - Si quedan operadores en la pila, se añaden todos a la salida.
 
 ``` java
-// Algoritmo "Shunting yard"
+    // Algoritmo Shunting Yard.
     private void infixToPostfix(List<String> tokens) {
         List<String> output = new ArrayList<>();
         Stack<String> operators = new Stack<>();
 
         for (String token : tokens) {
-            if (isStringANumber(token)) // Si es un número se agrega a la salida.
-            {
+            if (isStringANumber(token)) {// Si es un número se agrega a la salida.
                 output.add(token);
-
-            } else if (isOperator(token)) { // Si es un operador aridmetico entonces:
-
+            } 
+            else if (isOperator(token)) { // Si es un operador aridmetico entonces:
                 /*
                  * Mientras que el token sea un operador con menor o igual precedencia que
                  * el operador en el tope de la pila se sacaran operadores de la pila
                  * hasta que el operador con el que se compare tenga menor precedencia.
                  */
                 while (!operators.isEmpty() && precedence.containsKey(operators.peek())
-                        && precedence.get(token) <= precedence.get(operators.peek())) {
+                        && precedence.get(token) <= precedence.get(operators.peek())) 
+                {
                     output.add(operators.pop());
                 }
                 operators.push(token);// Añadir el operador luego de la comparación.
 
                 /*
-                 * Si la pila de operadores esta vacia se añade el operador directamente.
+                 * Si la pila de operadores esta vacia entonces, se añade el operador directamente.
                  * Si la pila no esta vacia y el operador recibido tiene mayor precedencia que
-                 * el del tope de la pila este se añade.
+                 * el operador del tope de la pila entonces, se añade.
                  */
                 if (operators.isEmpty()) {
                     operators.push(token);
@@ -152,8 +162,8 @@ El método `infixToPostfix` toma una lista de **tokens** que representan número
                 }
 
                 /* 
-                 * Si es un paréntesis de apertura se añade directamente a la pila.
-                 * Si es un paréntesis de cierre se vacia la pila hasta encontrar un
+                 * Si es un paréntesis de apertura entonces, se añade directamente a la pila.
+                 * Si es un paréntesis de cierre entonces, se vacia la pila hasta encontrar un
                  * parentecis de apertura.
                  */
             } else if (token.equals("(")) {
@@ -164,9 +174,9 @@ El método `infixToPostfix` toma una lista de **tokens** que representan número
                 while (!operators.isEmpty() && !operators.peek().equals("(")) {
                     output.add(operators.pop());
                 }
-                operators.pop();// Se borra el paréntesis de apertura de la pila.
+                operators.pop();// Se borra el paréntesis de apertura luego de comparar.
             }
-        }// fin for each.
+        }// fin foreach.
 
         /*
          * Si no quedan datos para leer y la pila de operadores no esta vacia entornces,
@@ -195,7 +205,7 @@ El método `evaluatorExpression` utiliza una pila para evaluar expresiones matem
    Se itera sobre cada **token** de la expresión posfija, que puede ser un número o un operador.
 
 2. **Si el token es un número**:
-   - Se convierte el número de tipo `String` a `Double` y se apila en la pila `output`.
+   - Se apila en la pila `output`.
 
 3. **Si el token es un operador binario**:
    - Se extraen los dos últimos números de la pila (`a` y `b`), que corresponden a los operandos.
@@ -209,46 +219,66 @@ El método `evaluatorExpression` utiliza una pila para evaluar expresiones matem
 4. **Si el token es la raíz cuadrada (`√`)**:
    - Se extrae un número de la pila y se calcula su raíz cuadrada, apilando el resultado.
 
-5. **Final del proceso**:
+5. **Si el token es una funcion trigonometrica**:
+   - Se extrae un número de la pila que corresponde a una funcion trigonometrica.
+   - Se realiza la operación correspondiente según la funcion actual:
+     - **Seno (`sin(n)`)**
+     - **Coseno (`cos(n)`)**
+     - **Tangente (`tan(n)`)**
+     - **Cosecante (`csc(n)`)**
+     - **Secante (`sec(n)`)**
+     - **Cotangente (`cot(n)`)**
+
+6. **Final del proceso**:
    - Al final de la iteración, el último valor en la pila `output` es el resultado de la expresión, que se guarda en la variable `ans` y se devuelve como resultado final.
 
 ``` java
-public double evaluatorExpression() {
+    public double evaluateExpression() {
         Stack<Double> output = new Stack<>();
 
         for (String token : posfixExpresion) {
             if (isStringANumber(token)) {
-                output.push(Double.parseDouble(token));
-
-            } else if (isOperator(token) && !token.equals("√") ) {
+                output.push(Double.valueOf(token));
+            } 
+            else if (isOperator(token) && !token.equals("√") 
+                    && !isTrigonometricFunction(token)) {
 
                 double b = output.pop();
                 double a = output.pop();
-                double result = 0;
 
                 switch (token) {
-                    case "+":
-                        output.push(a + b);
-                        break;
-                    case "-":
-                        output.push(a - b);
-                        break;
-                    case "x":
-                        output.push(a * b);
-                        break;
-                    case "÷":
-                        output.push(a / b);
-                        break;
-                    case "^":
-                        output.push(Math.pow(a, b));
-                        break;
-                    default:
-                        throw new AssertionError();
+                    case "+" -> output.push(a + b);
+                    case "-" -> output.push(a - b);
+                    case "x" -> output.push(a * b);
+                    case "÷" -> output.push(a / b);
+                    case "^" -> output.push(Math.pow(a, b));
+                    default -> throw new AssertionError();
                 }
-            } else if (token.equals("√")) {
+            } 
+            else if (token.equals("√")) {
                 output.push(Math.sqrt(output.pop()));
+            } 
+            else if (isTrigonometricFunction(token)) {
+
+                // Convierte el angulo a radianes.
+                double radians = Math.toRadians(output.pop());
+
+                switch (token) {
+                    case "sin" -> output.push(Math.sin(radians));
+                    case "cos" -> output.push(Math.cos(radians));
+                    case "tan" -> output.push(Math.tan(radians));
+                    // Reciprocas.
+                    case "csc" -> output.push(1 / Math.sin(radians));
+                    case "sec" -> output.push(1 / Math.cos(radians));
+                    case "cot" -> output.push(1 / Math.tan(radians));
+                    // Inversas.
+                    case "arcsin" -> output.push(Math.asin(radians));
+                    case "arccos" -> output.push(Math.acos(radians));
+                    case "arctan" -> output.push(Math.atan(radians));
+                    default -> throw new AssertionError();
+                }
             }
-        }// fin for each.
+        }// fin foreach.
 
         ans = output.pop();
         return ans;
