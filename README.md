@@ -1,6 +1,8 @@
 # Scientific-Calculator
 Esta calculadora científica utiliza el algoritmo Shunting Yard, creado por el famoso científico de la computación Edsger Dijkstra. El objetivo principal de este algoritmo es convertir una expresión matemática en notación infija (la forma habitual en la que escribimos las expresiones matemáticas, como "3 + 3 x 4 - 10") a una notación posfija o notación polaca inversa (por ejemplo, "3 3 4 * + 10 -"). Esta conversión facilita la evaluación de la expresión para una computadora.
 
+![imgScientificCalculator-2.0](https://github.com/leandrogomezf6/Scientific-Calculator/blob/main/imgScientificCalculator-2.0.png)
+
 Haciendo uso de un algoritmo personalizado denominado "Sorting Buffer" para formatear y tokenizar la expresion de entrada facilitando su conversion a notacion posfija.
 
 ## Como se evalua la expresion
